@@ -6,6 +6,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.*;
 
 class MD5File implements Runnable {
@@ -26,6 +27,7 @@ class MD5File implements Runnable {
 			md = MessageDigest.getInstance("MD5");
 		} catch (NoSuchAlgorithmException e) {
 			// TODO Auto-generated catch block
+			System.out.println("MessageDigest.getInstance");
 			e.printStackTrace();
 		}
 		FileInputStream fs = null;
@@ -33,6 +35,7 @@ class MD5File implements Runnable {
 			fs = new FileInputStream(file);
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
+			System.out.println("new FileInputStream");
 			e.printStackTrace();
 		}
 		BufferedInputStream bs = new BufferedInputStream(fs);
@@ -45,6 +48,7 @@ class MD5File implements Runnable {
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
+			System.out.println("bs.read");
 			e.printStackTrace();
 		}
 		byte[] digest = md.digest();
@@ -65,25 +69,29 @@ public class ConcurrentDirMD5 {
 
 	public static void scanDir(String path) throws Exception {
 		File currentDir = new File(path);
+		System.out.println(currentDir.getAbsolutePath());
 
-		if (currentDir.isFile()) {
+		if (currentDir.isFile() && currentDir.canRead() && currentDir.length() <= 1024 * 1024 * 10) {
+
 			fileArr.add(currentDir.getAbsolutePath());
 			// System.out.println(currentDir.getAbsolutePath());
 		} else {
 			// System.out.println(currentDir.getAbsolutePath());
 		}
 
-		if (currentDir.isDirectory()) {
+		if (currentDir.isDirectory() && currentDir.canRead()) {
 			String[] items = currentDir.list();
-			for (String name : items) {
-				scanDir(path + "/" + name);
+			if (items != null) {
+				for (String name : items) {
+					scanDir(path + "/" + name);
+				}
 			}
 		}
 	}
 
 	public static void main(String[] args) throws Exception {
 		long starttime = System.currentTimeMillis();
-		scanDir("d:\\usr");
+		scanDir("c:\\windows\\appcompat\\Programs\\");
 		ExecutorService service = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 		for (String line : fileArr) {
 
@@ -98,9 +106,9 @@ public class ConcurrentDirMD5 {
 		long stoptime = System.currentTimeMillis();
 		System.out.println(stoptime - starttime);
 
-//		List<String> values = new ArrayList<>(map.keySet());
-//		for (String val : values) {
-//			System.out.println(val + "," + map.get(val));
-//		}
+		List<String> values = new ArrayList<>(map.keySet());
+		for (String val : values) {
+			System.out.println(val + "," + map.get(val));
+		}
 	}
 }
